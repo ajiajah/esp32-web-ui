@@ -1,0 +1,155 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ESP32 Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #00c853;
+      --danger: #d50000;
+      --bg: #121212;
+      --card-bg: #1e1e1e;
+      --text: #ffffff;
+      --font: 'Inter', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--font);
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      margin: 0;
+    }
+
+    .subtitle {
+      color: #aaa;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+    }
+
+    .card h2 {
+      margin-top: 0;
+    }
+
+    .value {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .btn {
+      background-color: var(--primary);
+      border: none;
+      padding: 12px 20px;
+      color: white;
+      font-size: 1rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .btn.off {
+      background-color: var(--danger);
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>ESP32 Dashboard</h1>
+      <p class="subtitle">Monitoring & Kontrol IoT</p>
+    </header>
+
+    <section class="card">
+      <h2>Sensor Suhu</h2>
+      <div id="temperature" class="value">-- °C</div>
+    </section>
+
+    <section class="card">
+      <h2>Kontrol LED</h2>
+      <button id="ledButton" class="btn">Nyalakan LED</button>
+    </section>
+
+    <footer>
+      <p>&copy; 2025 ESP32 Web UI</p>
+    </footer>
+  </div>
+
+  <script>
+    const esp32URL = "http://192.168.1.100"; // Ganti ke IP ESP32 atau domain (Cloudflare/ngrok)
+
+    const temperatureDisplay = document.getElementById("temperature");
+    const ledButton = document.getElementById("ledButton");
+    let ledOn = false;
+
+    async function fetchTemperature() {
+      try {
+        const res = await fetch(`${esp32URL}/temperature`);
+        const temp = await res.text();
+        temperatureDisplay.textContent = `${temp} °C`;
+      } catch (error) {
+        temperatureDisplay.textContent = "Gagal membaca";
+      }
+    }
+
+    ledButton.addEventListener("click", async () => {
+      ledOn = !ledOn;
+      const state = ledOn ? "on" : "off";
+      try {
+        await fetch(`${esp32URL}/led?state=${state}`);
+        ledButton.textContent = ledOn ? "Matikan LED" : "Nyalakan LED";
+        ledButton.classList.toggle("off", ledOn);
+      } catch (error) {
+        alert("Gagal mengubah status LED");
+      }
+    });
+
+    fetchTemperature();
+    setInterval(fetchTemperature, 5000);
+  </script>
+</body>
+</html>
